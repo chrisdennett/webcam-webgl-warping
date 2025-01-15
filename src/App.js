@@ -13,6 +13,7 @@ const defaultCornerCoords = {
 };
 
 export default function App() {
+  const srcCanvasRef = useRef(null);
   const canvasRef = useRef(null);
   const [webGLIsReady, setWebGLIsReady] = useState(false);
   const [srcCanvasWidth, setSrcCanvasWidth] = useState(null);
@@ -20,7 +21,7 @@ export default function App() {
   const [cornerCoords, setCornerCoords] = useState(defaultCornerCoords);
   const [frameCanvas, setFrameCanvas] = useState(null);
   const [currFrame, setCurrFrame] = useState(0);
-  const [uploadedImage, setUploadedImage] = useState(null);
+  const [uploadedImage, setUploadedImage] = useState("/test-pic.jpg");
 
   const onFrame = (frameCanvas, frameTime) => {
     setFrameCanvas(frameCanvas);
@@ -84,13 +85,13 @@ export default function App() {
             maxY={srcCanvasHeight}
           />
         )}
-
         <WebcamCapture onFrame={onFrame} />
-
         <canvas ref={canvasRef} />
       </div>
-      <input type="file" accept="image/*" onChange={handleImageUpload} />
-      {uploadedImage && <img src={uploadedImage} alt="Uploaded" />}
+      <div>
+        <input type="file" accept="image/*" onChange={handleImageUpload} />
+        {uploadedImage && <img src={uploadedImage} alt="Uploaded" />}
+      </div>
     </>
   );
 }
