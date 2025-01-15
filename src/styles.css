@@ -1,4 +1,5 @@
-.App {
-  font-family: sans-serif;
-  text-align: center;
+img,
+canvas {
+  border: 1px solid black; /* Add a border to the canvases for visibility */
+  max-width: 600px; /* Set a smaller fixed width for the canvases */
 }

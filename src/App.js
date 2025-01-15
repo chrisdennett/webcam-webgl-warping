@@ -9,7 +9,7 @@ const defaultCornerCoords = {
   topLeft: [0.0, 0.0],
   topRight: [1.0, 0.0],
   bottomLeft: [0.0, 1.0],
-  bottomRight: [1.0, 1.0]
+  bottomRight: [1.0, 1.0],
 };
 
 export default function App() {
@@ -20,10 +20,22 @@ export default function App() {
   const [cornerCoords, setCornerCoords] = useState(defaultCornerCoords);
   const [frameCanvas, setFrameCanvas] = useState(null);
   const [currFrame, setCurrFrame] = useState(0);
+  const [uploadedImage, setUploadedImage] = useState(null);
 
   const onFrame = (frameCanvas, frameTime) => {
     setFrameCanvas(frameCanvas);
     setCurrFrame(frameTime);
+  };
+
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUploadedImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   useEffect(() => {
@@ -46,7 +58,7 @@ export default function App() {
         topLeft: cornerCoords.topLeft,
         topRight: cornerCoords.topRight,
         bottomLeft: cornerCoords.bottomLeft,
-        bottomRight: cornerCoords.bottomRight
+        bottomRight: cornerCoords.bottomRight,
       });
     } else {
       setupWebGL({
@@ -55,26 +67,30 @@ export default function App() {
         topLeft: cornerCoords.topLeft,
         topRight: cornerCoords.topRight,
         bottomLeft: cornerCoords.bottomLeft,
-        bottomRight: cornerCoords.bottomRight
+        bottomRight: cornerCoords.bottomRight,
       });
       setWebGLIsReady(true);
     }
-  }, [currFrame, cornerCoords]);
+  }, [currFrame, cornerCoords, uploadedImage]);
 
   return (
-    <div>
-      {srcCanvasWidth && srcCanvasHeight && (
-        <Corners
-          cornerCoords={cornerCoords}
-          setCornerCoords={setCornerCoords}
-          maxX={srcCanvasWidth}
-          maxY={srcCanvasHeight}
-        />
-      )}
+    <>
+      <div>
+        {srcCanvasWidth && srcCanvasHeight && (
+          <Corners
+            cornerCoords={cornerCoords}
+            setCornerCoords={setCornerCoords}
+            maxX={srcCanvasWidth}
+            maxY={srcCanvasHeight}
+          />
+        )}
 
-      <WebcamCapture onFrame={onFrame} />
+        <WebcamCapture onFrame={onFrame} />
 
-      <canvas ref={canvasRef} />
-    </div>
+        <canvas ref={canvasRef} />
+      </div>
+      <input type="file" accept="image/*" onChange={handleImageUpload} />
+      {uploadedImage && <img src={uploadedImage} alt="Uploaded" />}
+    </>
   );
 }
