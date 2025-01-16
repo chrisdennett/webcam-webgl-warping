@@ -1,5 +1,26 @@
 img,
 canvas {
   border: 1px solid black; /* Add a border to the canvases for visibility */
-  max-width: 600px; /* Set a smaller fixed width for the canvases */
+  /*max-width: 600px; */
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
+}
+
+.canvas-container {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.source-canvas-wrapper {
+  border: pink solid 2px;
+}
+
+.controls {
+  width: 100%;
 }

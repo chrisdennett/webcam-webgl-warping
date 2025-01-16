@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./styles.css";
-import { WebcamCapture } from "./WebcamCapture";
 
 import { mapPolygonToCanvas, setupWebGL } from "./webGLStuff/webglThings";
 import { Corners } from "./comps/Corners";
@@ -20,12 +19,33 @@ export default function App() {
   const [srcCanvasHeight, setSrcCanvasHeight] = useState(null);
   const [cornerCoords, setCornerCoords] = useState(defaultCornerCoords);
   const [frameCanvas, setFrameCanvas] = useState(null);
-  const [currFrame, setCurrFrame] = useState(0);
   const [uploadedImage, setUploadedImage] = useState("/test-pic.jpg");
+  const [scale, setScale] = useState(1);
 
-  const onFrame = (frameCanvas, frameTime) => {
-    setFrameCanvas(frameCanvas);
-    setCurrFrame(frameTime);
+  const loadImageToCanvas = (imageSrc) => {
+    const img = new Image();
+    img.src = imageSrc;
+    img.onload = () => {
+      const canvas = srcCanvasRef.current;
+      if (canvas) {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        setSrcCanvasWidth(img.width);
+        setSrcCanvasHeight(img.height);
+
+        // Calculate scale to fit the image within a 800x600 viewport
+        const maxWidth = 800;
+        const maxHeight = 600;
+        const scaleX = maxWidth / img.width;
+        const scaleY = maxHeight / img.height;
+        setScale(Math.min(scaleX, scaleY, 1));
+
+        setCornerCoords(defaultCornerCoords);
+        setFrameCanvas(canvas);
+      }
+    };
   };
 
   const handleImageUpload = (event) => {
@@ -34,19 +54,15 @@ export default function App() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setUploadedImage(reader.result);
-        const img = new Image();
-        img.src = reader.result;
-        img.onload = () => {
-          const canvas = srcCanvasRef.current;
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0);
-        };
+        loadImageToCanvas(reader.result);
       };
       reader.readAsDataURL(file);
     }
   };
+
+  useEffect(() => {
+    loadImageToCanvas(uploadedImage);
+  }, [uploadedImage]);
 
   useEffect(() => {
     if (!frameCanvas) return;
@@ -55,8 +71,6 @@ export default function App() {
     if (!srcCanvasWidth) {
       screenCanvas.width = frameCanvas.width;
       screenCanvas.height = frameCanvas.height;
-      setSrcCanvasWidth(frameCanvas.width);
-      setSrcCanvasHeight(frameCanvas.height);
     }
 
     const gl = canvasRef.current.getContext("webgl");
@@ -81,37 +95,51 @@ export default function App() {
       });
       setWebGLIsReady(true);
     }
-
-    const defaultImg = new Image();
-    defaultImg.src = uploadedImage;
-    defaultImg.onload = () => {
-      const canvas = srcCanvasRef.current;
-      canvas.width = defaultImg.width;
-      canvas.height = defaultImg.height;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(defaultImg, 0, 0);
-    };
-  }, [currFrame, cornerCoords, uploadedImage]);
+  }, [cornerCoords, srcCanvasWidth]);
 
   return (
-    <>
-      <div>
-        {srcCanvasWidth && srcCanvasHeight && (
-          <Corners
-            cornerCoords={cornerCoords}
-            setCornerCoords={setCornerCoords}
-            maxX={srcCanvasWidth}
-            maxY={srcCanvasHeight}
+    <div className="app-container">
+      <div className="canvas-container">
+        <div
+          className="source-canvas-wrapper"
+          style={{
+            position: "relative",
+            width: srcCanvasWidth ? `${srcCanvasWidth * scale}px` : "auto",
+            height: srcCanvasHeight ? `${srcCanvasHeight * scale}px` : "auto",
+          }}
+        >
+          {srcCanvasWidth && srcCanvasHeight && (
+            <Corners
+              cornerCoords={cornerCoords}
+              setCornerCoords={setCornerCoords}
+              maxX={srcCanvasWidth}
+              maxY={srcCanvasHeight}
+              scale={scale}
+            />
+          )}
+          <canvas
+            className="source-canvas"
+            ref={srcCanvasRef}
+            style={{
+              border: "blue solid 2px",
+              width: "100%",
+              height: "100%",
+            }}
           />
-        )}
-        <WebcamCapture onFrame={onFrame} />
-        <canvas ref={canvasRef} />
+        </div>
+        <canvas
+          className="output-canvas"
+          ref={canvasRef}
+          style={{
+            border: "red solid 2px",
+            width: srcCanvasWidth ? `${srcCanvasWidth * scale}px` : "auto",
+            height: srcCanvasHeight ? `${srcCanvasHeight * scale}px` : "auto",
+          }}
+        />
       </div>
-      <div>
-        <canvas ref={srcCanvasRef} />
+      <div className="controls">
         <input type="file" accept="image/*" onChange={handleImageUpload} />
-        {uploadedImage && <img src={uploadedImage} alt="Uploaded" />}
       </div>
-    </>
+    </div>
   );
 }
