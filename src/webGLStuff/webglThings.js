@@ -34,7 +34,7 @@ export const setupWebGL = ({
   topLeft,
   topRight,
   bottomLeft,
-  bottomRight
+  bottomRight,
 }) => {
   const cornersArr = [
     ...convertArrToFloats(topLeft),
@@ -42,7 +42,7 @@ export const setupWebGL = ({
     ...convertArrToFloats(bottomLeft),
     ...convertArrToFloats(bottomLeft),
     ...convertArrToFloats(topRight),
-    ...convertArrToFloats(bottomRight)
+    ...convertArrToFloats(bottomRight),
   ];
 
   const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
@@ -101,7 +101,7 @@ export const setupWebGL = ({
 
   // resizeCanvasToDisplaySize(gl.canvas);
 
-  // Tell WebGL how to convert from clip space to pixels
+  // Set the viewport to the full canvas size
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
   // Clear the canvas
@@ -158,7 +158,7 @@ export const mapPolygonToCanvas = ({
   topLeft,
   topRight,
   bottomLeft,
-  bottomRight
+  bottomRight,
 }) => {
   const cornersArr = [
     ...convertArrToFloats(topLeft),
@@ -166,7 +166,7 @@ export const mapPolygonToCanvas = ({
     ...convertArrToFloats(bottomLeft),
     ...convertArrToFloats(bottomLeft),
     ...convertArrToFloats(topRight),
-    ...convertArrToFloats(bottomRight)
+    ...convertArrToFloats(bottomRight),
   ];
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cornersArr), gl.STATIC_DRAW);
@@ -185,7 +185,7 @@ export const mapPolygonToCanvas = ({
   gl.drawArrays(primitiveType, offset, count);
 };
 
-const convertArrToFloats = arr => {
+const convertArrToFloats = (arr) => {
   return [arr[0].toFixed(4), arr[1].toFixed(4)];
 };
 

@@ -19,6 +19,7 @@ export default function App() {
   const [srcCanvasHeight, setSrcCanvasHeight] = useState(null);
   const [cornerCoords, setCornerCoords] = useState(defaultCornerCoords);
   const [frameCanvas, setFrameCanvas] = useState(null);
+  const [fullResCanvas, setFullResCanvas] = useState(null);
   const [uploadedImage, setUploadedImage] = useState("/test-pic.jpg");
   const [scale, setScale] = useState(1);
 
@@ -26,6 +27,14 @@ export default function App() {
     const img = new Image();
     img.src = imageSrc;
     img.onload = () => {
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = img.width;
+      tempCanvas.height = img.height;
+      const ctx = tempCanvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+
+      setFullResCanvas(tempCanvas);
+
       const canvas = srcCanvasRef.current;
       if (canvas) {
         canvas.width = img.width;
@@ -68,17 +77,18 @@ export default function App() {
     if (!frameCanvas) return;
     const screenCanvas = canvasRef.current;
 
-    if (!srcCanvasWidth) {
-      screenCanvas.width = frameCanvas.width;
-      screenCanvas.height = frameCanvas.height;
-    }
+    // Set the actual canvas dimensions
+    screenCanvas.width = fullResCanvas.width;
+    screenCanvas.height = fullResCanvas.height;
 
-    const gl = canvasRef.current.getContext("webgl");
+    const gl = screenCanvas.getContext("webgl");
+
+    console.log("cornerCoords.bottomRight: ", cornerCoords.bottomRight);
 
     if (webGLIsReady) {
       mapPolygonToCanvas({
         gl,
-        image: frameCanvas,
+        image: fullResCanvas,
         topLeft: cornerCoords.topLeft,
         topRight: cornerCoords.topRight,
         bottomLeft: cornerCoords.bottomLeft,
@@ -87,15 +97,16 @@ export default function App() {
     } else {
       setupWebGL({
         gl,
-        image: frameCanvas,
+        image: fullResCanvas,
         topLeft: cornerCoords.topLeft,
         topRight: cornerCoords.topRight,
         bottomLeft: cornerCoords.bottomLeft,
         bottomRight: cornerCoords.bottomRight,
       });
+
       setWebGLIsReady(true);
     }
-  }, [cornerCoords, srcCanvasWidth]);
+  }, [frameCanvas, cornerCoords, srcCanvasWidth]);
 
   return (
     <div className="app-container">
@@ -134,6 +145,7 @@ export default function App() {
             border: "red solid 2px",
             width: srcCanvasWidth ? `${srcCanvasWidth * scale}px` : "auto",
             height: srcCanvasHeight ? `${srcCanvasHeight * scale}px` : "auto",
+            objectFit: "contain",
           }}
         />
       </div>
