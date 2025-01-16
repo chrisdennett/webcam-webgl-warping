@@ -34,6 +34,15 @@ export default function App() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setUploadedImage(reader.result);
+        const img = new Image();
+        img.src = reader.result;
+        img.onload = () => {
+          const canvas = srcCanvasRef.current;
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+        };
       };
       reader.readAsDataURL(file);
     }
@@ -72,6 +81,16 @@ export default function App() {
       });
       setWebGLIsReady(true);
     }
+
+    const defaultImg = new Image();
+    defaultImg.src = uploadedImage;
+    defaultImg.onload = () => {
+      const canvas = srcCanvasRef.current;
+      canvas.width = defaultImg.width;
+      canvas.height = defaultImg.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(defaultImg, 0, 0);
+    };
   }, [currFrame, cornerCoords, uploadedImage]);
 
   return (
@@ -89,6 +108,7 @@ export default function App() {
         <canvas ref={canvasRef} />
       </div>
       <div>
+        <canvas ref={srcCanvasRef} />
         <input type="file" accept="image/*" onChange={handleImageUpload} />
         {uploadedImage && <img src={uploadedImage} alt="Uploaded" />}
       </div>
